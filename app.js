@@ -162,28 +162,40 @@ function playClickSound() {
 function initializeMusic() {
     // Add event listeners for audio loading
     backgroundMusic.addEventListener('loadeddata', () => {
-        console.log('Music loaded successfully');
-        musicToggle.style.display = 'block'; // Show music toggle only when music is loaded
+        const source = backgroundMusic.querySelector('source[src="' + backgroundMusic.currentSrc + '"]');
+        console.log('Music loaded successfully:', {
+            source: source ? source.src : backgroundMusic.currentSrc,
+            type: source ? source.type : 'unknown'
+        });
+        musicToggle.style.display = 'block';
     });
 
     backgroundMusic.addEventListener('error', (e) => {
-        console.error('Error loading music source:', e);
+        const sources = backgroundMusic.getElementsByTagName('source');
+        const currentSource = Array.from(sources).find(source => source.src === backgroundMusic.currentSrc);
+        
+        console.error('Error loading music source:', {
+            source: currentSource ? currentSource.src : 'unknown',
+            type: currentSource ? currentSource.type : 'unknown',
+            error: e.target.error
+        });
+
         // Try next source if available
-        if (backgroundMusic.getElementsByTagName('source').length > 0) {
-            let sources = backgroundMusic.getElementsByTagName('source');
-            let currentSource = sources[0];
-            currentSource.remove(); // Remove the failed source
-            backgroundMusic.load(); // Try loading the next source
+        if (sources.length > 0) {
+            const failedSource = sources[0];
+            console.log('Removing failed source:', failedSource.src);
+            failedSource.remove();
+            backgroundMusic.load();
         } else {
             console.error('All music sources failed to load');
-            musicToggle.style.display = 'none'; // Hide music toggle if all sources fail
+            musicToggle.style.display = 'none';
         }
     }, true);
 
-    backgroundMusic.volume = 0.3; // Set initial volume to 30%
+    backgroundMusic.volume = 0.3;
     
     // Add music toggle functionality
-    musicToggle.style.display = 'none'; // Hide initially until music is loaded
+    musicToggle.style.display = 'none';
     musicToggle.addEventListener('click', async () => {
         try {
             isMusicEnabled = !isMusicEnabled;
@@ -216,6 +228,7 @@ function initializeMusic() {
     });
 
     // Start loading the audio
+    console.log('Starting audio load...');
     backgroundMusic.load();
 }
 
