@@ -51,7 +51,32 @@ h1 {
 }
 
 .search-container {
-    margin-bottom: 30px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 20px;
+}
+
+.filter-container {
+    display: flex;
+    gap: 10px;
+    margin: 10px 0;
+}
+
+#gen-filter {
+    padding: 8px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    background-color: var(--background-color);
+    color: var(--text-color);
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+#gen-filter:hover {
+    border-color: var(--accent-color);
 }
 
 #search {

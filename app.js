@@ -14,7 +14,7 @@ const backgroundMusic = document.getElementById('background-music');
 
 // Global variables
 let allPokemon = [];
-const POKEMON_LIMIT = 151; // First generation
+const POKEMON_LIMIT = 251; // First and second generation
 let isDarkMode = false;
 let isSoundEnabled = true;
 let isMusicEnabled = false;
@@ -236,23 +236,32 @@ function initializeMusic() {
 async function fetchPokemon() {
     try {
         showLoader();
-        const response = await fetch(`https://pokeapi.co/api/v2/pokemon?limit=${POKEMON_LIMIT}`);
-        const data = await response.json();
+        const promises = [];
+        for (let i = 1; i <= POKEMON_LIMIT; i++) {
+            promises.push(fetch(`https://pokeapi.co/api/v2/pokemon/${i}`).then(res => res.json()));
+        }
         
-        // Fetch detailed data for each Pokemon
-        const detailedPokemon = await Promise.all(
-            data.results.map(async (pokemon) => {
-                const response = await fetch(pokemon.url);
-                return response.json();
-            })
-        );
-        
-        allPokemon = detailedPokemon;
+        const pokemonList = await Promise.all(promises);
+        allPokemon = pokemonList;
         displayPokemon(allPokemon);
         hideLoader();
+        
+        // Add generation filter
+        if (!document.getElementById('gen-filter')) {
+            const filterContainer = document.createElement('div');
+            filterContainer.className = 'filter-container';
+            filterContainer.innerHTML = `
+                <select id="gen-filter" onchange="filterByGeneration(this.value)">
+                    <option value="all">All Generations</option>
+                    <option value="1">Generation 1</option>
+                    <option value="2">Generation 2</option>
+                </select>
+            `;
+            document.querySelector('.search-container').appendChild(filterContainer);
+        }
     } catch (error) {
         console.error('Error fetching Pokemon:', error);
-        pokemonGrid.innerHTML = '<p class="error">Error loading Pokemon. Please try again later.</p>';
+        pokemonGrid.innerHTML = '<p class="error">Error loading Pokémon. Please try again later.</p>';
         hideLoader();
     }
 }
@@ -371,12 +380,17 @@ async function showPokemonDetails(pokemon) {
 // Search functionality
 function searchPokemon(searchTerm) {
     const selectedType = typeFilter.value;
+    const generation = document.getElementById('gen-filter')?.value || 'all';
     const filteredPokemon = allPokemon.filter(pokemon => {
         const matchesSearch = pokemon.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
             pokemon.id.toString() === searchTerm;
         const matchesType = !selectedType || 
             pokemon.types.some(type => type.type.name === selectedType);
-        return matchesSearch && matchesType;
+        const matchesGeneration = 
+            generation === 'all' ||
+            (generation === '1' && pokemon.id <= 151) ||
+            (generation === '2' && pokemon.id > 151 && pokemon.id <= 251);
+        return matchesSearch && matchesType && matchesGeneration;
     });
     displayPokemon(filteredPokemon);
 }
@@ -385,12 +399,31 @@ function searchPokemon(searchTerm) {
 typeFilter.addEventListener('change', () => {
     playClickSound();
     const selectedType = typeFilter.value;
+    const generation = document.getElementById('gen-filter')?.value || 'all';
     const filteredPokemon = selectedType
         ? allPokemon.filter(pokemon => 
-            pokemon.types.some(type => type.type.name === selectedType))
+            pokemon.types.some(type => type.type.name === selectedType) &&
+            ((generation === 'all') ||
+            (generation === '1' && pokemon.id <= 151) ||
+            (generation === '2' && pokemon.id > 151 && pokemon.id <= 251)))
         : allPokemon;
     displayPokemon(filteredPokemon);
 });
+
+// Add generation filter function
+function filterByGeneration(generation) {
+    const cards = document.querySelectorAll('.pokemon-card');
+    cards.forEach(card => {
+        const pokemonId = parseInt(card.getAttribute('data-id'));
+        if (generation === 'all' ||
+            (generation === '1' && pokemonId <= 151) ||
+            (generation === '2' && pokemonId > 151 && pokemonId <= 251)) {
+            card.style.display = 'flex';
+        } else {
+            card.style.display = 'none';
+        }
+    });
+}
 
 // Utility functions
 function showLoader() {
