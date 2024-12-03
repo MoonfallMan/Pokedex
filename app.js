@@ -163,15 +163,27 @@ function initializeMusic() {
     // Add event listeners for audio loading
     backgroundMusic.addEventListener('loadeddata', () => {
         console.log('Music loaded successfully');
+        musicToggle.style.display = 'block'; // Show music toggle only when music is loaded
     });
 
     backgroundMusic.addEventListener('error', (e) => {
-        console.error('Error loading music:', e);
-    });
+        console.error('Error loading music source:', e);
+        // Try next source if available
+        if (backgroundMusic.getElementsByTagName('source').length > 0) {
+            let sources = backgroundMusic.getElementsByTagName('source');
+            let currentSource = sources[0];
+            currentSource.remove(); // Remove the failed source
+            backgroundMusic.load(); // Try loading the next source
+        } else {
+            console.error('All music sources failed to load');
+            musicToggle.style.display = 'none'; // Hide music toggle if all sources fail
+        }
+    }, true);
 
-    backgroundMusic.volume = 0.3; // Increase initial volume to 30%
+    backgroundMusic.volume = 0.3; // Set initial volume to 30%
     
     // Add music toggle functionality
+    musicToggle.style.display = 'none'; // Hide initially until music is loaded
     musicToggle.addEventListener('click', async () => {
         try {
             isMusicEnabled = !isMusicEnabled;
@@ -180,12 +192,6 @@ function initializeMusic() {
             
             if (isMusicEnabled) {
                 console.log('Attempting to play music...');
-                // Create and play a test sound first (to handle autoplay restrictions)
-                const testSound = new Audio('sounds/click.mp3');
-                testSound.volume = 0;
-                await testSound.play();
-                
-                // Now try to play the background music
                 await backgroundMusic.play();
                 console.log('Music playing successfully');
             } else {
@@ -208,6 +214,9 @@ function initializeMusic() {
             backgroundMusic.play().catch(console.error);
         }
     });
+
+    // Start loading the audio
+    backgroundMusic.load();
 }
 
 // Fetch Pokemon data
