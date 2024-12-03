@@ -9,12 +9,15 @@ const themeToggle = document.getElementById('theme-toggle');
 const typeFilter = document.getElementById('typeFilter');
 const soundToggle = document.getElementById('sound-toggle');
 const clickSound = document.getElementById('click-sound');
+const musicToggle = document.getElementById('music-toggle');
+const backgroundMusic = document.getElementById('background-music');
 
 // Global variables
 let allPokemon = [];
 const POKEMON_LIMIT = 151; // First generation
 let isDarkMode = false;
 let isSoundEnabled = true;
+let isMusicEnabled = false;
 
 // Type effectiveness data
 const typeEffectiveness = {
@@ -153,6 +156,39 @@ function playClickSound() {
     clickSound.currentTime = 0;
     clickSound.volume = 0.2;
     clickSound.play().catch(error => console.error('Error playing click sound:', error));
+}
+
+// Music functionality
+function initializeMusic() {
+    backgroundMusic.volume = 0.1; // Set initial volume to 10%
+    
+    // Add music toggle functionality
+    musicToggle.addEventListener('click', () => {
+        isMusicEnabled = !isMusicEnabled;
+        musicToggle.textContent = isMusicEnabled ? '🎵 Music On' : '🎵 Music Off';
+        musicToggle.classList.toggle('muted', !isMusicEnabled);
+        
+        if (isMusicEnabled) {
+            // Start playing when user enables music
+            backgroundMusic.play().catch(error => {
+                console.error('Error playing background music:', error);
+                isMusicEnabled = false;
+                musicToggle.textContent = '🎵 Music Off';
+                musicToggle.classList.add('muted');
+            });
+        } else {
+            backgroundMusic.pause();
+        }
+    });
+    
+    // Handle page visibility changes
+    document.addEventListener('visibilitychange', () => {
+        if (document.hidden && isMusicEnabled) {
+            backgroundMusic.pause();
+        } else if (!document.hidden && isMusicEnabled) {
+            backgroundMusic.play().catch(console.error);
+        }
+    });
 }
 
 // Fetch Pokemon data
@@ -354,3 +390,4 @@ soundToggle.addEventListener('click', () => {
 
 // Initialize
 fetchPokemon();
+initializeMusic();

@@ -357,7 +357,8 @@ h1 {
 
 /* Theme and sound toggle buttons */
 .theme-toggle,
-.sound-toggle {
+.sound-toggle,
+.music-toggle {
     position: fixed;
     background: var(--card-background);
     border: 2px solid var(--primary-color);
@@ -380,14 +381,21 @@ h1 {
     right: 160px;
 }
 
+.music-toggle {
+    bottom: 20px;
+    right: 300px;
+}
+
 .theme-toggle:hover,
-.sound-toggle:hover {
+.sound-toggle:hover,
+.music-toggle:hover {
     transform: translateY(-2px);
     box-shadow: 0 4px 8px var(--shadow-color);
 }
 
-/* Sound button muted state */
-.sound-toggle.muted {
+/* Sound and music button muted state */
+.sound-toggle.muted,
+.music-toggle.muted {
     background-color: var(--background-color);
     opacity: 0.8;
 }
