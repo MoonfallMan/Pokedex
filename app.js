@@ -160,24 +160,43 @@ function playClickSound() {
 
 // Music functionality
 function initializeMusic() {
-    backgroundMusic.volume = 0.1; // Set initial volume to 10%
+    // Add event listeners for audio loading
+    backgroundMusic.addEventListener('loadeddata', () => {
+        console.log('Music loaded successfully');
+    });
+
+    backgroundMusic.addEventListener('error', (e) => {
+        console.error('Error loading music:', e);
+    });
+
+    backgroundMusic.volume = 0.3; // Increase initial volume to 30%
     
     // Add music toggle functionality
-    musicToggle.addEventListener('click', () => {
-        isMusicEnabled = !isMusicEnabled;
-        musicToggle.textContent = isMusicEnabled ? '🎵 Music On' : '🎵 Music Off';
-        musicToggle.classList.toggle('muted', !isMusicEnabled);
-        
-        if (isMusicEnabled) {
-            // Start playing when user enables music
-            backgroundMusic.play().catch(error => {
-                console.error('Error playing background music:', error);
-                isMusicEnabled = false;
-                musicToggle.textContent = '🎵 Music Off';
-                musicToggle.classList.add('muted');
-            });
-        } else {
-            backgroundMusic.pause();
+    musicToggle.addEventListener('click', async () => {
+        try {
+            isMusicEnabled = !isMusicEnabled;
+            musicToggle.textContent = isMusicEnabled ? '🎵 Music On' : '🎵 Music Off';
+            musicToggle.classList.toggle('muted', !isMusicEnabled);
+            
+            if (isMusicEnabled) {
+                console.log('Attempting to play music...');
+                // Create and play a test sound first (to handle autoplay restrictions)
+                const testSound = new Audio('sounds/click.mp3');
+                testSound.volume = 0;
+                await testSound.play();
+                
+                // Now try to play the background music
+                await backgroundMusic.play();
+                console.log('Music playing successfully');
+            } else {
+                backgroundMusic.pause();
+                console.log('Music paused');
+            }
+        } catch (error) {
+            console.error('Error with music playback:', error);
+            isMusicEnabled = false;
+            musicToggle.textContent = '🎵 Music Off';
+            musicToggle.classList.add('muted');
         }
     });
     
